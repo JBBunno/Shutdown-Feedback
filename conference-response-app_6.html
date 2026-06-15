@@ -227,16 +227,19 @@ var params = new URLSearchParams(window.location.search);
 var isPresenter = params.get("presenter") === "1";
 
 function loadQuestion(callback) {
+  var done = false;
+  function finish(q) {
+    if (done) return;
+    done = true;
+    currentQuestion = q || "";
+    if (callback) callback();
+  }
+  // 5 second timeout — render the page regardless
+  var timer = setTimeout(function() { finish(""); }, 5000);
   fetch(SCRIPT_URL + "?action=getQuestion")
     .then(function(r){ return r.json(); })
-    .then(function(d){
-      currentQuestion = d.question || "";
-      if (callback) callback();
-    })
-    .catch(function(){
-      currentQuestion = "";
-      if (callback) callback();
-    });
+    .then(function(d){ clearTimeout(timer); finish(d.question); })
+    .catch(function(){ clearTimeout(timer); finish(""); });
 }
 
 function renderAudience() {
