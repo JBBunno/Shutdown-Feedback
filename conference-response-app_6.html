@@ -219,6 +219,7 @@
 </div>
 
 <script>
+var ANTHROPIC_KEY = "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";
 var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxfI8x6XAKpr_9bPPv6q5mA6cB77oEEtlAJPctYcL_W7UYgFABQdsFFi5ZvymFDN7BIdA/exec";
 var PRESENTER_PASS = "palmcrest";
 var currentQuestion = "";
@@ -477,11 +478,25 @@ function generateSummary() {
 
       btn.textContent = "Analysing with AI…";
 
-      fetch(SCRIPT_URL + "?action=aiSummary&prompt=" + encodeURIComponent(prompt))
+      fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": ANTHROPIC_KEY,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true"
+        },
+        body: JSON.stringify({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 1000,
+          messages: [{ role: "user", content: prompt }]
+        })
+      })
       .then(function(r){ return r.json(); })
       .then(function(d) {
-        if (d.error) throw new Error(d.error);
-        reportEl.textContent = d.summary;
+        var text = d.content && d.content[0] && d.content[0].text;
+        if (!text) throw new Error(d.error && d.error.message || "No response");
+        reportEl.textContent = text;
         reportEl.style.display = "block";
         btn.disabled = false;
         btn.textContent = "✨ Regenerate summary";
