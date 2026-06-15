@@ -353,8 +353,13 @@ function renderPresenterPanel() {
     '<button class="btn btn-secondary" onclick="refreshCount()">Refresh response count</button>',
     '<hr class="divider">',
     '<p class="label">Responses received</p>',
-    '<p style="font-size:1.5rem;font-weight:700;color:#1a1a2e;margin-top:0.25rem" id="resp-count">—</p>',
-    '<p style="font-size:12px;color:#aaa;margin-top:4px">Open your Google Sheet to read responses live.</p>'
+    '<p style="font-size:1.5rem;font-weight:700;color:#c19c4b;margin-top:0.25rem;margin-bottom:0.25rem" id="resp-count">—</p>',
+    '<p style="font-size:12px;color:#6a8aaa;margin-top:4px;margin-bottom:1.25rem">Open your Google Sheet to read responses live.</p>',
+    '<hr class="divider">',
+    '<p class="label" style="margin-bottom:0.75rem">AI Trend Summary</p>',
+    '<button class="btn" id="ai-btn" onclick="generateSummary()" style="margin-bottom:0.75rem">&#x2728; Generate trending summary</button>',
+    '<div id="ai-report" style="display:none;background:rgba(193,156,75,0.06);border:1px solid rgba(193,156,75,0.2);border-radius:10px;padding:1.25rem;font-size:14px;line-height:1.7;color:#d0d8e8;white-space:pre-wrap;margin-top:0.25rem"></div>',
+    '<p class="error-msg" id="ai-error">Failed to generate summary. Try again.</p>'
   ].join("");
 
   refreshCount();
@@ -427,6 +432,96 @@ function refreshCount() {
       var el = document.getElementById("resp-count");
       if (el) el.textContent = d.count !== undefined ? d.count : "—";
     }).catch(function(){});
+}
+
+function generateSummary() {
+  var btn = document.getElementById("ai-btn");
+  var reportEl = document.getElementById("ai-report");
+  var errEl = document.getElementById("ai-error");
+  errEl.style.display = "none";
+  reportEl.style.display = "none";
+  btn.disabled = true;
+  btn.textContent = "Fetching responses…";
+
+  fetch(SCRIPT_URL + "?action=getResponses")
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      if (!data.rows || data.rows.length === 0) {
+        errEl.textContent = "No responses yet to summarise.";
+        errEl.style.display = "block";
+        btn.disabled = false;
+        btn.textContent = "✨ Generate trending summary";
+        return;
+      }
+
+      // Group responses by question
+      var groups = {};
+      data.rows.forEach(function(row) {
+        var q = row.question || "No question";
+        var r = row.response || "";
+        if (!groups[q]) groups[q] = [];
+        if (r) groups[q].push(r);
+      });
+
+      var prompt = "You are analysing audience responses from a conference Q&A session. Below are the questions asked and the responses received from attendees. For each question, identify the top 3-5 trending themes and key points from the responses. Be concise and direct — this will be shown on a projector. Format as:
+
+QUESTION: [question]
+TRENDS:
+• [trend/key point]
+• [trend/key point]
+...
+
+---
+
+";
+
+      Object.keys(groups).forEach(function(q) {
+        prompt += "QUESTION: " + q + "
+";
+        prompt += "RESPONSES (" + groups[q].length + " total):
+";
+        groups[q].forEach(function(r, i) { prompt += (i+1) + ". " + r + "
+"; });
+        prompt += "
+";
+      });
+
+      btn.textContent = "Analysing with AI…";
+
+      fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-6",
+          max_tokens: 1000,
+          messages: [{ role: "user", content: prompt }]
+        })
+      })
+      .then(function(r){ return r.json(); })
+      .then(function(d) {
+        var text = d.content && d.content[0] && d.content[0].text;
+        if (text) {
+          reportEl.textContent = text;
+          reportEl.style.display = "block";
+        } else {
+          throw new Error("No content");
+        }
+        btn.disabled = false;
+        btn.textContent = "✨ Regenerate summary";
+      })
+      .catch(function() {
+        errEl.textContent = "AI summary failed. Check your connection and try again.";
+        errEl.style.display = "block";
+        btn.disabled = false;
+        btn.textContent = "✨ Generate trending summary";
+      });
+    })
+    .catch(function() {
+      errEl.textContent = "Could not fetch responses from sheet.";
+      errEl.style.display = "block";
+      btn.disabled = false;
+      btn.textContent = "✨ Generate trending summary";
+    });
 }
 
 function resetForm() {
