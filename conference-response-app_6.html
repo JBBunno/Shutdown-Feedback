@@ -6,35 +6,47 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Conference Response</title>
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Calibri:wght@300;400;600&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    font-family: system-ui, -apple-system, sans-serif;
-    background: #f0f2f8;
+    font-family: 'Calibri', 'Calibri Light', system-ui, sans-serif;
+    font-weight: 300;
+    background: #0b1c33;
     min-height: 100vh;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 1rem;
+    padding: 1.5rem 1rem;
+  }
+  .logo-wrap {
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  .logo-wrap img {
+    height: 52px;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
   }
   .card {
-    background: #fff;
+    background: #112240;
+    border: 1px solid rgba(193,156,75,0.2);
     border-radius: 16px;
     padding: 2.5rem 2rem;
     max-width: 580px;
     width: 100%;
-    box-shadow: 0 2px 16px rgba(0,0,0,0.09);
+    box-shadow: 0 4px 32px rgba(0,0,0,0.4);
   }
   .label {
     font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
+    font-weight: 600;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: #888;
+    color: #c19c4b;
     margin-bottom: 0.5rem;
   }
   .question-box {
-    background: #f0f4ff;
-    border-left: 4px solid #4a6cf7;
+    background: rgba(193,156,75,0.08);
+    border-left: 4px solid #c19c4b;
     border-radius: 0 8px 8px 0;
     padding: 1rem 1.25rem;
     margin-bottom: 2rem;
@@ -42,113 +54,135 @@
   }
   .question-text {
     font-size: 1.2rem;
-    font-weight: 600;
-    color: #1a1a2e;
+    font-weight: 400;
+    color: #e8e8e8;
     line-height: 1.4;
   }
   .field-label {
     display: block;
     font-size: 14px;
-    font-weight: 500;
-    color: #444;
+    font-weight: 400;
+    color: #a0b0c8;
     margin-bottom: 6px;
   }
   textarea {
     width: 100%;
-    border: 1.5px solid #ddd;
+    border: 1px solid rgba(193,156,75,0.3);
     border-radius: 10px;
     padding: 0.85rem 1rem;
     font-size: 16px;
     font-family: inherit;
+    font-weight: 300;
     resize: vertical;
     min-height: 130px;
-    color: #1a1a1a;
+    color: #e8e8e8;
+    background: rgba(255,255,255,0.05);
     transition: border-color 0.15s;
     outline: none;
     margin-bottom: 1rem;
   }
-  textarea:focus { border-color: #4a6cf7; }
+  textarea:focus { border-color: #c19c4b; background: rgba(255,255,255,0.08); }
+  textarea::placeholder { color: #4a6080; }
   input[type="text"], input[type="password"] {
     width: 100%;
-    border: 1.5px solid #ddd;
+    border: 1px solid rgba(193,156,75,0.3);
     border-radius: 10px;
     padding: 0.75rem 1rem;
     font-size: 15px;
     font-family: inherit;
-    color: #1a1a1a;
+    font-weight: 300;
+    color: #e8e8e8;
+    background: rgba(255,255,255,0.05);
     transition: border-color 0.15s;
     outline: none;
     margin-bottom: 1rem;
   }
-  input[type="text"]:focus, input[type="password"]:focus { border-color: #4a6cf7; }
+  input[type="text"]:focus, input[type="password"]:focus { border-color: #c19c4b; background: rgba(255,255,255,0.08); }
+  input::placeholder { color: #4a6080; }
   .btn {
     width: 100%;
-    background: #4a6cf7;
-    color: #fff;
+    background: #c19c4b;
+    color: #0b1c33;
     border: none;
     border-radius: 10px;
     padding: 0.9rem;
-    font-size: 16px;
+    font-size: 15px;
+    font-family: inherit;
     font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
     cursor: pointer;
-    transition: background 0.15s;
+    transition: background 0.15s, transform 0.1s;
     margin-bottom: 0;
   }
-  .btn:hover { background: #3a5ce0; }
-  .btn:disabled { background: #aaa; cursor: not-allowed; }
+  .btn:hover { background: #d4ac58; }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { background: #3a4a5a; color: #6a7a8a; cursor: not-allowed; }
   .btn-secondary {
-    background: #fff;
-    color: #4a6cf7;
-    border: 1.5px solid #4a6cf7;
+    background: transparent;
+    color: #c19c4b;
+    border: 1.5px solid #c19c4b;
     margin-top: 0.75rem;
   }
-  .btn-secondary:hover { background: #f0f4ff; }
+  .btn-secondary:hover { background: rgba(193,156,75,0.1); }
   .btn-danger {
-    background: #fff;
-    color: #c0392b;
+    background: transparent;
+    color: #e74c3c;
     border: 1.5px solid #e74c3c;
     margin-top: 0.75rem;
   }
-  .btn-danger:hover { background: #fff0f0; }
+  .btn-danger:hover { background: rgba(231,76,60,0.1); }
   .success {
     text-align: center;
     padding: 1.5rem 0;
   }
   .tick { font-size: 3.5rem; margin-bottom: 1rem; }
-  .success h2 { font-size: 1.3rem; color: #1a1a1a; margin-bottom: 0.5rem; }
-  .success p { color: #666; font-size: 15px; }
+  .success h2 { font-size: 1.3rem; color: #e8e8e8; margin-bottom: 0.5rem; font-weight: 400; }
+  .success p { color: #a0b0c8; font-size: 15px; }
   .error-msg {
-    color: #c0392b;
+    color: #e74c3c;
     font-size: 13px;
     margin-bottom: 0.75rem;
     padding: 0.6rem 0.9rem;
-    background: #fff0f0;
+    background: rgba(231,76,60,0.1);
+    border: 1px solid rgba(231,76,60,0.3);
     border-radius: 8px;
     display: none;
   }
   .info-msg {
-    color: #1a6a1a;
+    color: #c19c4b;
     font-size: 13px;
     margin-bottom: 0.75rem;
     padding: 0.6rem 0.9rem;
-    background: #f0fff0;
+    background: rgba(193,156,75,0.1);
+    border: 1px solid rgba(193,156,75,0.3);
     border-radius: 8px;
     display: none;
+  }
+  .footer {
+    margin-top: 1.5rem;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: rgba(193,156,75,0.4);
+    text-transform: uppercase;
+    text-align: center;
   }
 
   /* Presenter panel styles */
   .presenter-header {
-    background: #1a1a2e;
-    color: #fff;
+    background: rgba(193,156,75,0.12);
+    border: 1px solid rgba(193,156,75,0.3);
+    color: #c19c4b;
     border-radius: 10px;
     padding: 0.75rem 1.1rem;
     margin-bottom: 1.5rem;
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
   .presenter-dot {
     width: 10px;
@@ -158,29 +192,26 @@
     flex-shrink: 0;
   }
   .current-q-preview {
-    background: #f8f8f8;
-    border: 1px solid #eee;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
     border-radius: 8px;
     padding: 0.75rem 1rem;
     font-size: 14px;
-    color: #333;
+    color: #a0b0c8;
     margin-bottom: 1.25rem;
     min-height: 42px;
   }
-  .q-count {
-    font-size: 12px;
-    color: #888;
-    margin-bottom: 1rem;
-    text-align: right;
-  }
   .divider {
     border: none;
-    border-top: 1px solid #eee;
+    border-top: 1px solid rgba(255,255,255,0.08);
     margin: 1.25rem 0;
   }
 </style>
 </head>
 <body>
+<div class="logo-wrap">
+  <img src="https://static.wixstatic.com/media/ebac84_5fa2badf87b241a1b4fc82029b013974~mv2.png" alt="PalmCrest">
+</div>
 <div class="card" id="main-card">
   <div id="loading-view">
     <p style="color:#888;font-size:15px;">Loading…</p>
