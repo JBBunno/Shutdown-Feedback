@@ -466,27 +466,13 @@ function generateSummary() {
         if (r) groups[q].push(r);
       });
 
-      var prompt = "You are analysing audience responses from a conference Q&A session. Below are the questions asked and the responses received from attendees. For each question, identify the top 3-5 trending themes and key points from the responses. Be concise and direct — this will be shown on a projector. Format as:
-
-QUESTION: [question]
-TRENDS:
-• [trend/key point]
-• [trend/key point]
-...
-
----
-
-";
+      var prompt = "You are analysing audience responses from a conference Q&A session. For each question, identify the top 3-5 trending themes and key points. Be concise and direct - this will be shown on a projector.\n\nFormat each question as:\nQUESTION: [question]\nTRENDS:\n- [trend/key point]\n- [trend/key point]\n\n---\n\n";
 
       Object.keys(groups).forEach(function(q) {
-        prompt += "QUESTION: " + q + "
-";
-        prompt += "RESPONSES (" + groups[q].length + " total):
-";
-        groups[q].forEach(function(r, i) { prompt += (i+1) + ". " + r + "
-"; });
-        prompt += "
-";
+        prompt += "QUESTION: " + q + "\n";
+        prompt += "RESPONSES (" + groups[q].length + " total):\n";
+        groups[q].forEach(function(r, i) { prompt += (i+1) + ". " + r + "\n"; });
+        prompt += "\n";
       });
 
       btn.textContent = "Analysing with AI…";
