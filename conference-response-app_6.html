@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -225,7 +226,8 @@ function renderAudience() {
     '<div id="success-view" class="success" style="display:none">',
       '<div class="tick">✅</div>',
       '<h2>Response submitted!</h2>',
-      '<p>Thank you — your answer has been recorded.</p>',
+      '<p style="margin-bottom:1.5rem">Thank you — your answer has been recorded.</p>',
+      '<button class="btn btn-secondary" onclick="resetForm()">Next question ↺</button>',
     '</div>'
   ].join("");
 
@@ -371,6 +373,12 @@ function refreshCount() {
       var el = document.getElementById("resp-count");
       if (el) el.textContent = d.count !== undefined ? d.count : "—";
     }).catch(function(){});
+}
+
+function resetForm() {
+  loadQuestion(function() {
+    renderAudience();
+  });
 }
 
 loadQuestion(function() {
