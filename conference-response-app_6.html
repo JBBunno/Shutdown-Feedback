@@ -340,30 +340,53 @@ function pushQuestion() {
 
   var btn = document.getElementById("set-btn");
   btn.disabled = true;
-  btn.textContent = "Pushing…";
 
   var body = new URLSearchParams({ action: "setQuestion", question: q });
 
-  fetch(SCRIPT_URL, {
-    method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: body.toString()
-  })
-  .then(function() {
-    currentQuestion = q;
-    document.getElementById("current-q-preview").textContent = q;
-    document.getElementById("new-question").value = "";
-    infoEl.style.display = "block";
-    btn.disabled = false;
-    btn.textContent = "Push question to audience";
-    setTimeout(function(){ infoEl.style.display = "none"; }, 3000);
-  })
-  .catch(function() {
-    errEl.style.display = "block";
-    btn.disabled = false;
-    btn.textContent = "Push question to audience";
-  });
+  function attempt(attemptsLeft) {
+    btn.textContent = "Pushing" + (attemptsLeft < 3 ? " (retry " + (3 - attemptsLeft + 1) + ")…" : "…");
+    fetch(SCRIPT_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: body.toString()
+    })
+    .then(function() {
+      // With no-cors we can't read the response, so verify by fetching the question back
+      return fetch(SCRIPT_URL + "?action=getQuestion");
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.question === q) {
+        currentQuestion = q;
+        document.getElementById("current-q-preview").textContent = q;
+        document.getElementById("new-question").value = "";
+        infoEl.style.display = "block";
+        btn.disabled = false;
+        btn.textContent = "Push question to audience";
+        setTimeout(function(){ infoEl.style.display = "none"; }, 3000);
+      } else if (attemptsLeft > 1) {
+        setTimeout(function() { attempt(attemptsLeft - 1); }, 1500);
+      } else {
+        errEl.textContent = "Failed after 3 attempts. Try again.";
+        errEl.style.display = "block";
+        btn.disabled = false;
+        btn.textContent = "Push question to audience";
+      }
+    })
+    .catch(function() {
+      if (attemptsLeft > 1) {
+        setTimeout(function() { attempt(attemptsLeft - 1); }, 1500);
+      } else {
+        errEl.textContent = "Failed after 3 attempts. Check your connection.";
+        errEl.style.display = "block";
+        btn.disabled = false;
+        btn.textContent = "Push question to audience";
+      }
+    });
+  }
+
+  attempt(3);
 }
 
 function refreshCount() {
