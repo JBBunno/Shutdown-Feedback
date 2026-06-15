@@ -477,29 +477,17 @@ function generateSummary() {
 
       btn.textContent = "Analysing with AI…";
 
-      fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-6",
-          max_tokens: 1000,
-          messages: [{ role: "user", content: prompt }]
-        })
-      })
+      fetch(SCRIPT_URL + "?action=aiSummary&prompt=" + encodeURIComponent(prompt))
       .then(function(r){ return r.json(); })
       .then(function(d) {
-        var text = d.content && d.content[0] && d.content[0].text;
-        if (text) {
-          reportEl.textContent = text;
-          reportEl.style.display = "block";
-        } else {
-          throw new Error("No content");
-        }
+        if (d.error) throw new Error(d.error);
+        reportEl.textContent = d.summary;
+        reportEl.style.display = "block";
         btn.disabled = false;
         btn.textContent = "✨ Regenerate summary";
       })
-      .catch(function() {
-        errEl.textContent = "AI summary failed. Check your connection and try again.";
+      .catch(function(e) {
+        errEl.textContent = "AI summary failed. " + (e.message || "Try again.");
         errEl.style.display = "block";
         btn.disabled = false;
         btn.textContent = "✨ Generate trending summary";
