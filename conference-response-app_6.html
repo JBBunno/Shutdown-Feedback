@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conference Response</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: #f0f2f8;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 2.5rem 2rem;
+    max-width: 580px;
+    width: 100%;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.09);
+  }
+  .label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 0.5rem;
+  }
+  .question-box {
+    background: #f0f4ff;
+    border-left: 4px solid #4a6cf7;
+    border-radius: 0 8px 8px 0;
+    padding: 1rem 1.25rem;
+    margin-bottom: 2rem;
+    min-height: 56px;
+  }
+  .question-text {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1a1a2e;
+    line-height: 1.4;
+  }
+  .field-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #444;
+    margin-bottom: 6px;
+  }
+  textarea {
+    width: 100%;
+    border: 1.5px solid #ddd;
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    font-size: 16px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 130px;
+    color: #1a1a1a;
+    transition: border-color 0.15s;
+    outline: none;
+    margin-bottom: 1rem;
+  }
+  textarea:focus { border-color: #4a6cf7; }
+  input[type="text"], input[type="password"] {
+    width: 100%;
+    border: 1.5px solid #ddd;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    font-size: 15px;
+    font-family: inherit;
+    color: #1a1a1a;
+    transition: border-color 0.15s;
+    outline: none;
+    margin-bottom: 1rem;
+  }
+  input[type="text"]:focus, input[type="password"]:focus { border-color: #4a6cf7; }
+  .btn {
+    width: 100%;
+    background: #4a6cf7;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 0.9rem;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    margin-bottom: 0;
+  }
+  .btn:hover { background: #3a5ce0; }
+  .btn:disabled { background: #aaa; cursor: not-allowed; }
+  .btn-secondary {
+    background: #fff;
+    color: #4a6cf7;
+    border: 1.5px solid #4a6cf7;
+    margin-top: 0.75rem;
+  }
+  .btn-secondary:hover { background: #f0f4ff; }
+  .btn-danger {
+    background: #fff;
+    color: #c0392b;
+    border: 1.5px solid #e74c3c;
+    margin-top: 0.75rem;
+  }
+  .btn-danger:hover { background: #fff0f0; }
+  .success {
+    text-align: center;
+    padding: 1.5rem 0;
+  }
+  .tick { font-size: 3.5rem; margin-bottom: 1rem; }
+  .success h2 { font-size: 1.3rem; color: #1a1a1a; margin-bottom: 0.5rem; }
+  .success p { color: #666; font-size: 15px; }
+  .error-msg {
+    color: #c0392b;
+    font-size: 13px;
+    margin-bottom: 0.75rem;
+    padding: 0.6rem 0.9rem;
+    background: #fff0f0;
+    border-radius: 8px;
+    display: none;
+  }
+  .info-msg {
+    color: #1a6a1a;
+    font-size: 13px;
+    margin-bottom: 0.75rem;
+    padding: 0.6rem 0.9rem;
+    background: #f0fff0;
+    border-radius: 8px;
+    display: none;
+  }
+
+  /* Presenter panel styles */
+  .presenter-header {
+    background: #1a1a2e;
+    color: #fff;
+    border-radius: 10px;
+    padding: 0.75rem 1.1rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .presenter-dot {
+    width: 10px;
+    height: 10px;
+    background: #4af78a;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .current-q-preview {
+    background: #f8f8f8;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 1.25rem;
+    min-height: 42px;
+  }
+  .q-count {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 1rem;
+    text-align: right;
+  }
+  .divider {
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 1.25rem 0;
+  }
+</style>
+</head>
+<body>
+<div class="card" id="main-card">
+  <div id="loading-view">
+    <p style="color:#888;font-size:15px;">Loading…</p>
+  </div>
+</div>
+
+<script>
+var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxELRsN2Cu9IGiU9HTRxhqzRGGKTX4vjbj3_YcZcUdO1Rxe66b5zR6GvwJJ-ROhhapUEA/exec";
+var PRESENTER_PASS = "palmcrest";
+var currentQuestion = "";
+
+var params = new URLSearchParams(window.location.search);
+var isPresenter = params.get("presenter") === "1";
+
+function loadQuestion(callback) {
+  fetch(SCRIPT_URL + "?action=getQuestion")
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      currentQuestion = d.question || "";
+      if (callback) callback();
+    })
+    .catch(function(){
+      currentQuestion = "";
+      if (callback) callback();
+    });
+}
+
+function renderAudience() {
+  var card = document.getElementById("main-card");
+  card.innerHTML = [
+    '<div id="form-view">',
+      '<p class="label">Question for discussion</p>',
+      '<div class="question-box">',
+        '<p class="question-text" id="question-display">' + (currentQuestion || "Awaiting question from presenter…") + '</p>',
+      '</div>',
+      '<label class="field-label" for="response">Your response</label>',
+      '<textarea id="response" placeholder="Type your answer here…"></textarea>',
+      '<label class="field-label" for="name">Your name <span style="color:#aaa;font-weight:400">(optional)</span></label>',
+      '<input type="text" id="name" placeholder="e.g. Jane Smith" style="margin-bottom:1.5rem">',
+      '<p class="error-msg" id="error-msg"></p>',
+      '<button class="btn" id="submit-btn" onclick="submitResponse()">Submit response</button>',
+    '</div>',
+    '<div id="success-view" class="success" style="display:none">',
+      '<div class="tick">✅</div>',
+      '<h2>Response submitted!</h2>',
+      '<p>Thank you — your answer has been recorded.</p>',
+    '</div>'
+  ].join("");
+
+  setInterval(function() {
+    fetch(SCRIPT_URL + "?action=getQuestion")
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        var q = d.question || "Awaiting question from presenter…";
+        var el = document.getElementById("question-display");
+        if (el && q !== currentQuestion) {
+          currentQuestion = q;
+          el.textContent = q;
+        }
+      }).catch(function(){});
+  }, 8000);
+}
+
+function submitResponse() {
+  var response = document.getElementById("response").value.trim();
+  var name = document.getElementById("name").value.trim();
+  var errEl = document.getElementById("error-msg");
+  errEl.style.display = "none";
+
+  if (!response) {
+    errEl.textContent = "Please enter a response before submitting.";
+    errEl.style.display = "block";
+    return;
+  }
+
+  var btn = document.getElementById("submit-btn");
+  btn.disabled = true;
+  btn.textContent = "Submitting…";
+
+  var params = new URLSearchParams({
+    response: response,
+    name: name || "(anonymous)",
+    question: currentQuestion,
+    timestamp: new Date().toISOString()
+  });
+
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: params.toString()
+  })
+  .then(function() {
+    document.getElementById("form-view").style.display = "none";
+    document.getElementById("success-view").style.display = "block";
+  })
+  .catch(function() {
+    errEl.textContent = "Submission failed. Check your connection and try again.";
+    errEl.style.display = "block";
+    btn.disabled = false;
+    btn.textContent = "Submit response";
+  });
+}
+
+function renderPresenterLogin() {
+  var card = document.getElementById("main-card");
+  card.innerHTML = [
+    '<p class="label">Presenter access</p>',
+    '<p style="font-size:14px;color:#666;margin-bottom:1.25rem;">Enter the presenter password to manage questions.</p>',
+    '<input type="password" id="pass-input" placeholder="Password" onkeydown="if(event.key===\'Enter\')checkPass()">',
+    '<p class="error-msg" id="pass-error">Incorrect password.</p>',
+    '<button class="btn" onclick="checkPass()">Continue</button>'
+  ].join("");
+}
+
+function checkPass() {
+  var val = document.getElementById("pass-input").value;
+  var err = document.getElementById("pass-error");
+  if (val === PRESENTER_PASS) {
+    renderPresenterPanel();
+  } else {
+    err.style.display = "block";
+  }
+}
+
+function renderPresenterPanel() {
+  var card = document.getElementById("main-card");
+  card.innerHTML = [
+    '<div class="presenter-header"><div class="presenter-dot"></div>Presenter control panel</div>',
+    '<p class="label">Current question (live)</p>',
+    '<div class="current-q-preview" id="current-q-preview">' + (currentQuestion || '<span style="color:#aaa">No question set yet</span>') + '</div>',
+    '<hr class="divider">',
+    '<p class="label" style="margin-bottom:0.5rem">Set new question</p>',
+    '<textarea id="new-question" placeholder="Type your next question here…" style="min-height:100px;margin-bottom:0.5rem"></textarea>',
+    '<p class="info-msg" id="info-msg">Question updated!</p>',
+    '<p class="error-msg" id="set-error">Failed to update. Try again.</p>',
+    '<button class="btn" id="set-btn" onclick="pushQuestion()">Push question to audience</button>',
+    '<button class="btn btn-secondary" onclick="refreshCount()">Refresh response count</button>',
+    '<hr class="divider">',
+    '<p class="label">Responses received</p>',
+    '<p style="font-size:1.5rem;font-weight:700;color:#1a1a2e;margin-top:0.25rem" id="resp-count">—</p>',
+    '<p style="font-size:12px;color:#aaa;margin-top:4px">Open your Google Sheet to read responses live.</p>'
+  ].join("");
+
+  refreshCount();
+}
+
+function pushQuestion() {
+  var q = document.getElementById("new-question").value.trim();
+  var infoEl = document.getElementById("info-msg");
+  var errEl = document.getElementById("set-error");
+  infoEl.style.display = "none";
+  errEl.style.display = "none";
+
+  if (!q) return;
+
+  var btn = document.getElementById("set-btn");
+  btn.disabled = true;
+  btn.textContent = "Pushing…";
+
+  var body = new URLSearchParams({ action: "setQuestion", question: q });
+
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: body.toString()
+  })
+  .then(function() {
+    currentQuestion = q;
+    document.getElementById("current-q-preview").textContent = q;
+    document.getElementById("new-question").value = "";
+    infoEl.style.display = "block";
+    btn.disabled = false;
+    btn.textContent = "Push question to audience";
+    setTimeout(function(){ infoEl.style.display = "none"; }, 3000);
+  })
+  .catch(function() {
+    errEl.style.display = "block";
+    btn.disabled = false;
+    btn.textContent = "Push question to audience";
+  });
+}
+
+function refreshCount() {
+  fetch(SCRIPT_URL + "?action=getCount")
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      var el = document.getElementById("resp-count");
+      if (el) el.textContent = d.count !== undefined ? d.count : "—";
+    }).catch(function(){});
+}
+
+loadQuestion(function() {
+  if (isPresenter) {
+    renderPresenterLogin();
+  } else {
+    renderAudience();
+  }
+});
+</script>
+</body>
+</html>
